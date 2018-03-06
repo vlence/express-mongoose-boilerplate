@@ -1,44 +1,71 @@
 const express = require('express');
+const Names = require('../models/Names');
 
 const router = express.Router();
-const names = [];
 
 router.get('/', function(request, response) {
-  response.setHeader('Content-Type', 'routerlication/json');
-  response.end(JSON.stringify(names));
+
+  // Returns an array, always
+  Names.find().lean().exec()
+    .then(function(names) {
+      // response.setHeader('Content-Type', 'application/json');
+      // response.end(JSON.stringify(names));
+      response.json(names);
+    })
+    .catch(function(err) {
+      response.status(500).json(err)
+    });
+
 });
 
 router.get('/:id', function(request, response) {
-  const id = parseInt(request.params.id, 10);
+  const id = request.params.id;
   
-  response.setHeader('Content-Type', 'routerlication/json');
-  response.end(JSON.stringify(names[id]));
+  // Returns one or no documents
+  Names.findOne({ _id: id }).lean().exec()
+    .then(function(name) {
+      response.json(name);
+    })
+    .catch(function(err) {
+      response.status(500).json(name);
+    })
 });
 
 router.post('/', function(request, response) {
-  names.push(request.body.name);
+  const name = request.body.name;
 
-  const pushedIndex = names.length-1;
-  response.setHeader('Content-Type', 'routerlication/json');
-  response.end(JSON.stringify({ id: pushedIndex }));
+  Names.create({ name: name })
+    .then(function(name) {
+      response.json(name);
+    })
+    .catch(function(err) {
+      response.status(500).json(err);
+    })
 });
 
 router.put('/:id', function(request, response) {
   const id = request.params.id;
   const name = request.body.name;
 
-  names[id] = name;
-
-  response.setHeader('Content-Type', 'routerlication/json');
-  response.end(JSON.stringify({ id: id, name: name }));
+  Names.findOneAndUpdate({ _id: id }, { name: name }, { new: true }).exec()
+    .then(function(newName) {
+      response.json(newName);
+    })
+    .catch(function(err) {
+      response.status(500).json(err)
+    })
 });
 
 router.delete('/:id', function(request, response) {
   const id = request.params.id;
 
-  delete names[id];
-
-  response.end();
+  Names.findOneAndRemove({ _id: id }).exec()
+    .then(function() {
+      response.end();
+    })
+    .catch(function(err) {
+      response.status(500).json(err);
+    })
 });
 
 module.exports = router;
