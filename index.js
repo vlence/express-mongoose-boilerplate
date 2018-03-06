@@ -9,7 +9,7 @@ const app = express();
 const url = 'mongodb://localhost:27017/test';
 
 // Use this to serve static content
-// app.use(express.static('public'));
+app.use(express.static('public'));
 
 mongoose.connect(url)
   .then(function() {

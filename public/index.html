@@ -4,8 +4,62 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <title>Document</title>
+
+  <script src="/angular.js"></script>
 </head>
 <body>
-  <h1>hello world</h1>
+  <!-- Root element of the app -->
+  <div ng-app="demo">
+    <!-- instantiate a controller -->
+    <div ng-controller="DemoCtrl as ctrl">
+      <ul>
+        <!-- Loop through the names -->
+        <li ng-repeat="name in ctrl.names">
+          {{ name.name }}
+        </li>
+      </ul>
+
+      <input type="text" ng-model="ctrl.text">
+      <button ng-click="ctrl.addName()">Click me</button>
+    </div>
+  </div>
+
+  <script>
+    angular.module('demo', [])
+      .controller('DemoCtrl', ['$http', function($http) {
+        const _self = this;
+
+        _self.text = '';
+        _self.names = [];
+
+        _self.$onInit = function() {
+          // Executed once when the controller is instantiated
+          _self.getNames();
+        }
+
+        _self.getNames = function() {
+          $http.get('/names')
+            .then(function(response) {
+              _self.names = response.data;
+            })
+            .catch(function(response) {
+              console.error(response.data);
+            })
+        }
+
+        _self.addName = function() {
+          $http.post('/names', { name: _self.text })
+            .then(function(response) {
+              console.log(response.data);
+              _self.text = '';
+
+              _self.getNames();
+            })
+            .catch(function(response) {
+              console.error(response)
+            })
+        }
+      }])
+  </script>
 </body>
 </html>
